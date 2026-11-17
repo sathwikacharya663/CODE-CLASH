@@ -1,0 +1,198 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body {
+    height: 100%;
+    background-color: #0d1117;
+    color: #e6edf3;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+
+  #root {
+    height: 100%;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #161b22;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #39ff14;
+    border-radius: 3px;
+    opacity: 0.6;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #39ff14;
+    opacity: 1;
+  }
+}
+
+@layer components {
+  /* Glowing text utilities */
+  .glow-green {
+    text-shadow: 0 0 10px #39ff14, 0 0 20px #39ff14;
+  }
+
+  .glow-green-intense {
+    text-shadow: 0 0 10px #39ff14, 0 0 20px #39ff14, 0 0 40px #39ff14;
+  }
+
+  .glow-cyan {
+    text-shadow: 0 0 10px #00f5ff, 0 0 20px #00f5ff;
+  }
+
+  .glow-purple {
+    text-shadow: 0 0 10px #bf5af2, 0 0 20px #bf5af2;
+  }
+
+  /* Border glow utilities */
+  .volt-border-glow {
+    box-shadow: 0 0 10px rgba(57, 255, 20, 0.3), inset 0 0 10px rgba(57, 255, 20, 0.05);
+  }
+
+  .volt-border-glow-strong {
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.5), 0 0 40px rgba(57, 255, 20, 0.2);
+  }
+
+  .volt-border-glow-cyan {
+    box-shadow: 0 0 10px rgba(0, 245, 255, 0.3), inset 0 0 10px rgba(0, 245, 255, 0.05);
+  }
+
+  .volt-border-glow-purple {
+    box-shadow: 0 0 10px rgba(191, 90, 242, 0.3), inset 0 0 10px rgba(191, 90, 242, 0.05);
+  }
+
+  /* Blinking cursor */
+  .blinking-cursor::after {
+    content: '_';
+    animation: blink 1s step-end infinite;
+    color: #39ff14;
+  }
+
+  /* Pulsing border animation */
+  .pulse-border {
+    animation: pulseBorder 2s ease-in-out infinite;
+  }
+
+  /* Scan line effect */
+  .scanline {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scanline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.03) 2px,
+      rgba(0, 0, 0, 0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Confetti animation */
+  .confetti-piece {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    animation: confettiFall linear forwards;
+  }
+
+  /* Neon button */
+  .btn-neon {
+    @apply border border-volt-green text-volt-green px-6 py-2 font-mono font-semibold
+           transition-all duration-200 hover:bg-volt-green hover:text-volt-bg
+           hover:shadow-[0_0_20px_rgba(57,255,20,0.5)];
+  }
+
+  .btn-neon-solid {
+    @apply bg-volt-green text-volt-bg px-6 py-2 font-mono font-semibold
+           transition-all duration-200 hover:shadow-[0_0_20px_rgba(57,255,20,0.7)]
+           hover:brightness-110;
+  }
+
+  /* Tab switch warning */
+  .tab-warning {
+    animation: flashWarning 0.5s ease-in-out;
+  }
+}
+
+@layer utilities {
+  .font-jetbrains {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Keyframes */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes pulseBorder {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(57, 255, 20, 0.3), 0 0 20px rgba(57, 255, 20, 0.1);
+    border-color: rgba(57, 255, 20, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.6), 0 0 40px rgba(57, 255, 20, 0.3);
+    border-color: rgba(57, 255, 20, 1);
+  }
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes flashWarning {
+  0% { background-color: transparent; }
+  50% { background-color: rgba(255, 69, 58, 0.2); }
+  100% { background-color: transparent; }
+}
+
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+/* Monaco editor overrides */
+.monaco-editor .margin {
+  background-color: #161b22 !important;
+}
+
+.monaco-editor-background {
+  background-color: #161b22 !important;
+}
