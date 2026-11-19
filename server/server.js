@@ -65,7 +65,7 @@ initSocket(io);
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`CODE VOLT server running on port ${PORT}`);
+  console.log(`CODE CLASH server running on port ${PORT}`);
 });
 
 module.exports = { app, server, io };

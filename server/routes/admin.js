@@ -33,14 +33,37 @@ function generatePassword() {
   return pass;
 }
 
-// Helper: compute team scores from submissions
+// Helper: compute best score per question for a team (prevents double-counting on resubmission)
+function bestScorePerQuestion(subs) {
+  const best = {};
+  for (const s of subs) {
+    const key = String(s.questionId);
+    if (best[key] === undefined || s.pointsEarned > best[key]) {
+      best[key] = s.pointsEarned || 0;
+    }
+  }
+  return Object.values(best).reduce((sum, pts) => sum + pts, 0);
+}
+
+// Helper: compute team scores from submissions — uses best score per question
 async function computeTeamScores(teams) {
   const results = await Promise.all(teams.map(async (team) => {
     const finalSubs = await Submission.find({ teamId: team.teamId, isFinalSubmission: true });
-    const totalScore = finalSubs.reduce((sum, s) => sum + (s.pointsEarned || 0), 0) + (team.manualPointsAdjustment || 0);
-    const r1Score = finalSubs.filter(s => s.round === 1).reduce((sum, s) => sum + (s.pointsEarned || 0), 0);
-    const r2Score = finalSubs.filter(s => s.round === 2).reduce((sum, s) => sum + (s.pointsEarned || 0), 0);
-    const r3Score = finalSubs.filter(s => s.round === 3).reduce((sum, s) => sum + (s.pointsEarned || 0), 0);
+    const r1Subs = finalSubs.filter(s => s.round === 1);
+    const r2Subs = finalSubs.filter(s => s.round === 2);
+    const r3Subs = finalSubs.filter(s => s.round === 3);
+    const r1Score = bestScorePerQuestion(r1Subs);
+    const r2Score = bestScorePerQuestion(r2Subs);
+    const r3Score = bestScorePerQuestion(r3Subs);
+    const totalScore = r1Score + r2Score + r3Score + (team.manualPointsAdjustment || 0);
+    // Final Score formula: [(R1+R2)/200 * 30] + [R3 * 70%]
+    // Only show if team has played (has any submission)
+    const hasR3 = r3Subs.length > 0;
+    const finalScore = finalSubs.length === 0
+      ? null
+      : hasR3
+        ? Math.round(((r1Score + r2Score) / 200) * 30 + r3Score * 0.7)
+        : null;
     return {
       teamId: team.teamId,
       teamName: team.teamName,
@@ -56,6 +79,7 @@ async function computeTeamScores(teams) {
       r1Score,
       r2Score,
       r3Score,
+      finalScore,
     };
   }));
   return results;
@@ -175,18 +199,24 @@ router.get('/leaderboard', async (req, res) => {
         .populate('questionId', 'round title totalPoints')
         .sort({ submittedAt: 1 });
 
-      const r1Score = finalSubs.filter(s => s.round === 1).reduce((sum, s) => sum + (s.pointsEarned || 0), 0);
-      const r2Score = finalSubs.filter(s => s.round === 2).reduce((sum, s) => sum + (s.pointsEarned || 0), 0);
-      const r3Score = finalSubs.filter(s => s.round === 3).reduce((sum, s) => sum + (s.pointsEarned || 0), 0);
+      const r1Subs = finalSubs.filter(s => s.round === 1);
+      const r2Subs = finalSubs.filter(s => s.round === 2);
+      const r3Subs = finalSubs.filter(s => s.round === 3);
+
+      // Use best score per question to avoid double-counting resubmissions
+      const r1Score = bestScorePerQuestion(r1Subs);
+      const r2Score = bestScorePerQuestion(r2Subs);
+      const r3Score = bestScorePerQuestion(r3Subs);
       const totalScore = r1Score + r2Score + r3Score + (team.manualPointsAdjustment || 0);
 
-      const submissionTimes = finalSubs.map(s => ({
-        questionId: s.questionId,
-        submittedAt: s.submittedAt,
-        status: s.status,
-        pointsEarned: s.pointsEarned,
-        round: s.round,
-      }));
+      // Final Score = [(R1+R2)/200 * 30] + [R3 * 70%]  — only if team played R3
+      const hasR3 = r3Subs.length > 0;
+      const finalScore = hasR3
+        ? Math.round(((r1Score + r2Score) / 200) * 30 + r3Score * 0.7)
+        : null;
+
+      // Last submission time
+      const lastSub = finalSubs[finalSubs.length - 1];
 
       return {
         teamId: team.teamId,
@@ -199,8 +229,9 @@ router.get('/leaderboard', async (req, res) => {
         r1Score,
         r2Score,
         r3Score,
+        finalScore,
         manualPointsAdjustment: team.manualPointsAdjustment,
-        submissions: submissionTimes,
+        lastSubmittedAt: lastSub ? lastSub.submittedAt : null,
       };
     }));
 
@@ -500,17 +531,17 @@ router.put('/rounds/select-top10', async (req, res) => {
 
 // ---- SUBMISSIONS ----
 
-// GET /api/admin/submissions
+// GET /api/admin/submissions — only final (clicked Submit) submissions, newest first
 router.get('/submissions', async (req, res) => {
   try {
     const { teamId, round, questionId } = req.query;
-    const filter = {};
+    const filter = { isFinalSubmission: true }; // exclude auto-saves and run results
     if (teamId) filter.teamId = teamId;
     if (round) filter.round = parseInt(round, 10);
     if (questionId) filter.questionId = questionId;
 
     const submissions = await Submission.find(filter)
-      .populate('questionId', 'title round')
+      .populate('questionId', 'title round order')
       .sort({ submittedAt: -1 })
       .limit(500);
     return res.json(submissions);

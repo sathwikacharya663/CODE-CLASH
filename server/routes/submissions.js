@@ -87,7 +87,7 @@ router.post('/submit', submitLimiter, async (req, res) => {
     });
     await submission.save();
 
-    // Notify admin via socket
+    // Notify admin via socket — rich payload so admin can update leaderboard without full re-fetch
     if (req.io) {
       req.io.to('admin').emit('submission:new', {
         teamId: req.user.teamId,
@@ -95,6 +95,9 @@ router.post('/submit', submitLimiter, async (req, res) => {
         round: roundNum,
         questionId,
         status: evalResult.status,
+        pointsEarned: evalResult.pointsEarned,
+        submittedAt: submission.submittedAt,
+        submissionId: submission._id,
       });
     }
 

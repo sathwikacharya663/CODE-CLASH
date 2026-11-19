@@ -40,7 +40,7 @@ export default function AdminLayout({
             </div>
             <div>
               <h1 className="font-mono font-bold text-base text-volt-green tracking-wider leading-none">
-                CODE VOLT
+                CODE CLASH
               </h1>
               <span className="font-mono text-[10px] text-volt-text-muted tracking-widest uppercase">
                 Admin Control

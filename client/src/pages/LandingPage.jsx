@@ -36,7 +36,7 @@ export default function LandingPage() {
             className="font-mono font-black text-6xl md:text-8xl glow-green-intense tracking-tight"
             style={{ color: '#39ff14' }}
           >
-            ⚡ CODE VOLT
+            ⚡ CODE CLASH
           </h1>
         </div>
 

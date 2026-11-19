@@ -58,7 +58,7 @@ export default function WinnersScreen({ isOpen, onClose, winnersData }) {
           <div className="flex items-center justify-center gap-3 mb-3">
             <Sparkles className="w-8 h-8 text-volt-yellow fill-current animate-spin" style={{ animationDuration: '3s' }} />
             <h1 className="font-mono text-4xl md:text-5xl font-black text-volt-green glow-green-intense tracking-tight">
-              ⚡ CODE VOLT
+              ⚡ CODE CLASH
             </h1>
             <Sparkles className="w-8 h-8 text-volt-yellow fill-current animate-spin" style={{ animationDuration: '3s', animationDirection: 'reverse' }} />
           </div>
@@ -119,7 +119,7 @@ export default function WinnersScreen({ isOpen, onClose, winnersData }) {
         </div>
 
         <div className="text-center pb-8 font-mono text-sm text-volt-text-muted">
-          Congratulations to all 30 teams for participating in <span className="text-volt-green font-bold">CODE VOLT</span>! ⚡
+          Congratulations to all 30 teams for participating in <span className="text-volt-green font-bold">CODE CLASH</span>! ⚡
         </div>
       </div>
     </div>

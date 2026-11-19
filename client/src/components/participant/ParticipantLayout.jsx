@@ -35,7 +35,7 @@ export default function ParticipantLayout({
           <div className="flex items-center gap-2">
             <Zap className="w-5 h-5 text-volt-green animate-pulse" />
             <span className="font-mono font-bold text-lg text-volt-green tracking-wide">
-              CODE VOLT
+              CODE CLASH
             </span>
           </div>
 

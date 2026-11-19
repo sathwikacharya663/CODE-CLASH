@@ -13,7 +13,7 @@ export default function Leaderboard({
   const handleExportCSV = () => {
     try {
       setDownloading(true)
-      const headers = ['Rank', 'Team ID', 'Team Name', 'Members', 'R1 Score', 'R2 Score', 'R3 Score', 'Total Points', 'Qualified R3']
+      const headers = ['Rank', 'Team ID', 'Team Name', 'Members', 'R1 Score', 'R2 Score', 'R3 Score', 'Total Points', 'Final Score', 'Qualified R3', 'Last Submission']
       const rows = leaderboard.map((item, index) => [
         index + 1,
         `"${item.teamId}"`,
@@ -23,14 +23,16 @@ export default function Leaderboard({
         item.r2Score || 0,
         item.r3Score || 0,
         item.totalScore || 0,
+        item.finalScore !== null && item.finalScore !== undefined ? item.finalScore : '-',
         item.isQualifiedRound3 ? 'YES' : 'NO',
+        item.lastSubmittedAt ? new Date(item.lastSubmittedAt).toLocaleString() : '-',
       ])
 
       const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n')
       const encodedUri = encodeURI(csvContent)
       const link = document.createElement('a')
       link.setAttribute('href', encodedUri)
-      link.setAttribute('download', `codevolt_leaderboard_${new Date().toISOString().slice(0, 10)}.csv`)
+      link.setAttribute('download', `codeclash_leaderboard_${new Date().toISOString().slice(0, 10)}.csv`)
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -89,6 +91,12 @@ export default function Leaderboard({
         </div>
       </div>
 
+      {/* Final Score formula info */}
+      <div className="px-4 py-2.5 rounded-lg bg-volt-bg-secondary border border-volt-border/60 font-mono text-[11px] text-volt-text-muted">
+        <span className="text-volt-cyan font-bold">Final Score formula:</span>{' '}
+        [(R1 + R2) ÷ 200 × 30] + [R3 × 70%] — only shown for teams that played Round 3. Teams without R3 show <span className="text-volt-text-muted font-bold">—</span>.
+      </div>
+
       {/* Leaderboard Table */}
       <div className="rounded-xl bg-volt-bg-secondary border border-volt-border overflow-hidden">
         <div className="overflow-x-auto">
@@ -98,23 +106,24 @@ export default function Leaderboard({
                 <th className="py-3 px-4 w-14 text-center">Rank</th>
                 <th className="py-3 px-4">Team</th>
                 <th className="py-3 px-4">Members</th>
-                <th className="py-3 px-4 text-center">R1 (Replication)</th>
-                <th className="py-3 px-4 text-center">R2 (Debugging)</th>
-                <th className="py-3 px-4 text-center">R3 (Scratch)</th>
-                <th className="py-3 px-4 text-right">Total Points</th>
+                <th className="py-3 px-4 text-center">R1</th>
+                <th className="py-3 px-4 text-center">R2</th>
+                <th className="py-3 px-4 text-center">R3</th>
+                <th className="py-3 px-4 text-right">Total</th>
+                <th className="py-3 px-4 text-center">Final Score</th>
+                <th className="py-3 px-4 text-right">Last Submit</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-volt-border">
               {leaderboard.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-volt-text-muted">
+                  <td colSpan={9} className="py-8 text-center text-volt-text-muted">
                     No leaderboard scores recorded yet. Submissions will rank teams automatically.
                   </td>
                 </tr>
               ) : (
                 leaderboard.map((team, index) => {
                   const rank = index + 1
-                  const isTop3 = rank <= 3
                   return (
                     <tr
                       key={team.teamId}
@@ -130,17 +139,11 @@ export default function Leaderboard({
                     >
                       <td className="py-3 px-4 text-center">
                         {rank === 1 ? (
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-volt-yellow text-volt-bg font-bold shadow-[0_0_10px_#ffd60a]">
-                            1
-                          </span>
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-volt-yellow text-volt-bg font-bold shadow-[0_0_10px_#ffd60a]">1</span>
                         ) : rank === 2 ? (
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-volt-cyan text-volt-bg font-bold shadow-[0_0_10px_#00f5ff]">
-                            2
-                          </span>
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-volt-cyan text-volt-bg font-bold shadow-[0_0_10px_#00f5ff]">2</span>
                         ) : rank === 3 ? (
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-volt-purple text-volt-bg font-bold shadow-[0_0_10px_#bf5af2]">
-                            3
-                          </span>
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-volt-purple text-volt-bg font-bold shadow-[0_0_10px_#bf5af2]">3</span>
                         ) : (
                           <span className="text-volt-text-muted font-semibold">#{rank}</span>
                         )}
@@ -150,9 +153,10 @@ export default function Leaderboard({
                         <div className="font-semibold text-volt-text flex items-center gap-1.5">
                           <span>{team.teamName}</span>
                           {team.isQualifiedRound3 && (
-                            <span className="px-1.5 py-0.2 rounded text-[10px] bg-volt-purple/20 text-volt-purple border border-volt-purple/40">
-                              R3 Q
-                            </span>
+                            <span className="px-1.5 py-0.5 rounded text-[10px] bg-volt-purple/20 text-volt-purple border border-volt-purple/40">R3</span>
+                          )}
+                          {team.isEliminated && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] bg-volt-red/20 text-volt-red border border-volt-red/40">OUT</span>
                           )}
                         </div>
                         <div className="text-[10px] text-volt-text-muted">{team.teamId}</div>
@@ -178,6 +182,20 @@ export default function Leaderboard({
                         <span className="text-volt-green font-bold text-sm">
                           {team.totalScore || 0} pts
                         </span>
+                      </td>
+
+                      <td className="py-3 px-4 text-center">
+                        {team.finalScore !== null && team.finalScore !== undefined ? (
+                          <span className="font-bold text-volt-yellow">{team.finalScore} / 100</span>
+                        ) : (
+                          <span className="text-volt-text-muted">—</span>
+                        )}
+                      </td>
+
+                      <td className="py-3 px-4 text-right text-[11px] text-volt-text-muted">
+                        {team.lastSubmittedAt
+                          ? new Date(team.lastSubmittedAt).toLocaleTimeString()
+                          : '—'}
                       </td>
                     </tr>
                   )

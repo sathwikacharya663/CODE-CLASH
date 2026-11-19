@@ -127,7 +127,7 @@ export default function TeamManager({
                 <th className="py-3 px-4">Team ID</th>
                 <th className="py-3 px-4">Team Name</th>
                 <th className="py-3 px-4">Members</th>
-                <th className="py-3 px-4">Score / Adj</th>
+                <th className="py-3 px-4">Scores (R1 | R2 | R3 | Total)</th>
                 <th className="py-3 px-4">Tab Alerts</th>
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
@@ -147,7 +147,10 @@ export default function TeamManager({
                     <td className="py-3 px-4 text-volt-text-muted max-w-xs truncate">
                       {Array.isArray(t.members) ? t.members.join(', ') : '-'}
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 text-center text-volt-cyan font-medium">{t.r1Score || 0}</td>
+                    <td className="py-3 px-4 text-center text-volt-yellow font-medium">{t.r2Score || 0}</td>
+                    <td className="py-3 px-4 text-center text-volt-purple font-medium">{t.r3Score || 0}</td>
+                    <td className="py-3 px-4 text-right">
                       <span className="text-volt-green font-bold">{t.totalScore || 0} pts</span>
                       {t.manualPointsAdjustment !== 0 && (
                         <span className="ml-1 text-[11px] text-volt-yellow font-mono">

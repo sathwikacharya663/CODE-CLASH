@@ -81,7 +81,7 @@ async function executeViaPiston(code, language, stdin = '') {
  */
 function executeLocally(code, language, stdin = '') {
   return new Promise((resolve) => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codevolt-'));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codeclash-'));
     const lang = (language || 'python').toLowerCase();
 
     let sourceFile = '';
