@@ -52,7 +52,7 @@ export default function LoginPage() {
           <div className="w-3 h-3 rounded-full bg-volt-red" />
           <div className="w-3 h-3 rounded-full bg-volt-yellow" />
           <div className="w-3 h-3 rounded-full bg-volt-green" />
-          <span className="ml-2 text-volt-text-muted font-mono text-xs">code-volt-auth.sh</span>
+          <span className="ml-2 text-volt-text-muted font-mono text-xs">code-clash-auth.sh</span>
         </div>
 
         {/* Card */}
@@ -61,10 +61,10 @@ export default function LoginPage() {
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Terminal size={20} className="text-volt-green" />
-              <span className="font-mono text-volt-green text-sm">{'>'} CODE VOLT LOGIN SYSTEM</span>
+              <span className="font-mono text-volt-green text-sm">{'>'} CODE CLASH LOGIN SYSTEM</span>
             </div>
             <h1 className="font-mono font-black text-3xl glow-green" style={{ color: '#39ff14' }}>
-              ⚡ CODE VOLT
+              ⚡ CODE CLASH
             </h1>
             <p className="text-volt-text-muted text-sm mt-1 font-mono">Where Code Meets Competition</p>
           </div>

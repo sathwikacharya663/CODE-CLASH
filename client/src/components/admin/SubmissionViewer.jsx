@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Code2, CheckCircle2, XCircle, Clock, Eye, RefreshCw } from 'lucide-react'
+import { CheckCircle2, XCircle, Eye, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Modal from '../common/Modal.jsx'
 import { adjustPoints } from '../../api/admin.js'
@@ -14,10 +14,23 @@ export default function SubmissionViewer({
   const [pointDelta, setPointDelta] = useState(0)
   const [adjusting, setAdjusting] = useState(false)
 
+  // Only show final submissions (isFinalSubmission === true) — auto-saves and runs are excluded server-side,
+  // but filter here as a safety net
   const filtered = submissions.filter((s) => {
+    if (!s.isFinalSubmission) return false
     if (filterRound !== 'all' && s.round !== Number(filterRound)) return false
     return true
   })
+
+  // Map internal status to simplified display status
+  const getDisplayStatus = (status) => {
+    if (!status || status === 'pending' || status === 'running') return 'Not submitted'
+    return 'Submitted'
+  }
+
+  const isSuccessfullySubmitted = (status) => {
+    return status && status !== 'pending' && status !== 'running'
+  }
 
   const handleAdjustPoints = async () => {
     if (!selectedSub || pointDelta === 0) return
@@ -40,9 +53,9 @@ export default function SubmissionViewer({
       {/* Header & Filter */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-mono text-2xl font-bold text-volt-text">Submissions Inspector</h2>
+          <h2 className="font-mono text-2xl font-bold text-volt-text">Submissions</h2>
           <p className="text-volt-text-muted font-mono text-xs mt-1">
-            Review submitted code, execution errors, test case assertions, and administer point adjustments.
+            Only records created when a participant clicks <strong>Submit</strong>. Run, auto-save, and language switching are not logged here.
           </p>
         </div>
 
@@ -70,6 +83,11 @@ export default function SubmissionViewer({
         </div>
       </div>
 
+      {/* Count badge */}
+      <div className="font-mono text-xs text-volt-text-muted">
+        Showing <span className="text-volt-cyan font-bold">{filtered.length}</span> submission{filtered.length !== 1 ? 's' : ''} (newest first)
+      </div>
+
       {/* Submissions Table */}
       <div className="rounded-xl bg-volt-bg-secondary border border-volt-border overflow-hidden">
         <div className="overflow-x-auto">
@@ -81,17 +99,15 @@ export default function SubmissionViewer({
                 <th className="py-3 px-4">Round</th>
                 <th className="py-3 px-4">Question</th>
                 <th className="py-3 px-4">Lang</th>
-                <th className="py-3 px-4">Tests Passed</th>
                 <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Points</th>
                 <th className="py-3 px-4 text-center">Inspect</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-volt-border">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-8 text-center text-volt-text-muted">
-                    No submissions found matching criteria.
+                  <td colSpan={7} className="py-8 text-center text-volt-text-muted">
+                    No submissions yet. Only Submit button clicks appear here.
                   </td>
                 </tr>
               ) : (
@@ -107,29 +123,21 @@ export default function SubmissionViewer({
                       </span>
                     </td>
                     <td className="py-3 px-4 text-volt-text max-w-xs truncate">
-                      {s.questionId?.title || 'Problem'}
+                      {s.questionId?.title || `Q${s.questionId?.order || ''}`}
                     </td>
                     <td className="py-3 px-4 uppercase text-volt-yellow font-medium">{s.language}</td>
                     <td className="py-3 px-4">
-                      <span className="text-volt-text font-bold">
-                        {s.totalTestsPassed || 0} / {s.totalTests || s.testCaseResults?.length || 0}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      {s.status === 'accepted' ? (
-                        <span className="inline-flex items-center gap-1 text-volt-green font-semibold">
+                      {isSuccessfullySubmitted(s.status) ? (
+                        <span className="inline-flex items-center gap-1.5 text-volt-green font-semibold">
                           <CheckCircle2 className="w-3.5 h-3.5" />
-                          Accepted
+                          Submitted
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-volt-red font-semibold">
+                        <span className="inline-flex items-center gap-1.5 text-volt-red font-semibold">
                           <XCircle className="w-3.5 h-3.5" />
-                          {s.status}
+                          Not submitted
                         </span>
                       )}
-                    </td>
-                    <td className="py-3 px-4 text-right font-bold text-volt-green">
-                      {s.pointsEarned || 0} pts
                     </td>
                     <td className="py-3 px-4 text-center">
                       <button
@@ -157,19 +165,27 @@ export default function SubmissionViewer({
         <Modal
           isOpen={!!selectedSub}
           onClose={() => setSelectedSub(null)}
-          title={`Submission: ${selectedSub.teamId} - Round ${selectedSub.round}`}
+          title={`Submission: ${selectedSub.teamId} — Round ${selectedSub.round} — ${selectedSub.questionId?.title || 'Question'}`}
         >
           <div className="space-y-4 font-mono text-xs max-h-[75vh] overflow-y-auto pr-1">
             {/* Meta pill bar */}
             <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-volt-bg border border-volt-border">
               <span className="text-volt-text-muted">Status:</span>
-              <span className="font-bold text-volt-green uppercase">{selectedSub.status}</span>
+              <span className={`font-bold uppercase ${isSuccessfullySubmitted(selectedSub.status) ? 'text-volt-green' : 'text-volt-red'}`}>
+                {getDisplayStatus(selectedSub.status)}
+              </span>
+              <span className="text-volt-border">|</span>
+              <span className="text-volt-text-muted">Eval Result:</span>
+              <span className="text-volt-cyan font-semibold uppercase">{selectedSub.status}</span>
               <span className="text-volt-border">|</span>
               <span className="text-volt-text-muted">Lang:</span>
               <span className="text-volt-yellow uppercase font-bold">{selectedSub.language}</span>
               <span className="text-volt-border">|</span>
-              <span className="text-volt-text-muted">Points Awarded:</span>
+              <span className="text-volt-text-muted">Points (admin):</span>
               <span className="text-volt-green font-bold">{selectedSub.pointsEarned} pts</span>
+              <span className="text-volt-border">|</span>
+              <span className="text-volt-text-muted">Tests Passed:</span>
+              <span className="text-volt-text font-bold">{selectedSub.totalTestsPassed || 0} / {selectedSub.totalTests || selectedSub.testCaseResults?.length || 0}</span>
             </div>
 
             {/* Code Block */}
@@ -228,10 +244,10 @@ export default function SubmissionViewer({
               </div>
             )}
 
-            {/* Manual Score Adjustment */}
+            {/* Manual Score Adjustment (admin only) */}
             <div className="p-3 rounded-lg bg-volt-bg-tertiary border border-volt-border space-y-2">
               <label className="block text-volt-text font-bold text-[11px] uppercase">
-                Adjust Points for This Submission
+                Admin: Adjust Points for This Submission
               </label>
               <div className="flex items-center gap-2">
                 <input

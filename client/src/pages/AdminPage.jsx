@@ -98,9 +98,11 @@ export default function AdminPage() {
   useEffect(() => {
     if (!socket) return
 
+    // A team submitted code — immediately refresh leaderboard + teams + submissions
     socket.on('submission:new', () => {
-      refreshSubmissions()
       refreshLeaderboard()
+      refreshTeams()
+      refreshSubmissions()
     })
 
     socket.on('team:status', () => {
@@ -112,9 +114,11 @@ export default function AdminPage() {
       toast.success('Round unlocked! Participants can now see it.', { icon: '🔓' })
     })
 
+    // When a round ends, recalculate all points and refresh everything
     socket.on('round:ended', () => {
       fetchRoundStates()
       refreshLeaderboard()
+      refreshTeams()
     })
 
     return () => {

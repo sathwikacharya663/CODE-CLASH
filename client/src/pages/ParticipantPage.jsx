@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+﻿import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Play, Send, RefreshCw, Zap, ShieldAlert, CheckCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -19,12 +19,7 @@ import ConsolePanel from '../components/participant/ConsolePanel.jsx'
 import LockedRound from '../components/participant/LockedRound.jsx'
 import EliminatedScreen from '../components/participant/EliminatedScreen.jsx'
 
-const DEFAULT_TEMPLATES = {
-  python: '# Python 3 Solution\nimport sys\n\ndef main():\n    # Your code here\n    pass\n\nif __name__ == "__main__":\n    main()\n',
-  c: '#include <stdio.h>\n\nint main() {\n    // Your code here\n    return 0;\n}\n',
-  cpp: '#include <iostream>\nusing namespace std;\n\nint main() {\n    // Your code here\n    return 0;\n}\n',
-  java: 'import java.util.Scanner;\n\npublic class Solution {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        // Your code here\n    }\n}\n',
-}
+// No starter templates — Rounds 1 and 3 start with an empty editor
 
 export default function ParticipantPage() {
   const { user, logout } = useAuth()
@@ -61,7 +56,7 @@ export default function ParticipantPage() {
     socket.on('copy-paste:toggle', (data) => {
       setCopyPasteDisabled(!data.enabled)
       toast(data.enabled ? 'Editor copy-paste enabled by admin' : 'Editor copy-paste disabled by admin', {
-        icon: '🔒',
+        icon: 'ðŸ”’',
       })
     })
     return () => {
@@ -101,15 +96,12 @@ export default function ParticipantPage() {
 
   function getInitialCode(q, lang, roundNum) {
     if (!q) return ''
-    // If Round 2: load buggy code for language if available
+    // Round 2: load the buggy code for the selected language
     if (roundNum === 2 && q.buggyCode && q.buggyCode[lang]) {
       return q.buggyCode[lang]
     }
-    // If starter code provided:
-    if (q.starterCode && q.starterCode[lang]) {
-      return q.starterCode[lang]
-    }
-    return DEFAULT_TEMPLATES[lang] || ''
+    // Rounds 1 & 3: always start empty
+    return ''
   }
 
   const handleCodeChange = (newCode) => {
@@ -380,3 +372,4 @@ export default function ParticipantPage() {
     </ParticipantLayout>
   )
 }
+
